@@ -55,6 +55,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { usePersonStore } from '@/stores/person'
+import { showToast, showSuccess } from '@/utils/toast'
 
 const personStore = usePersonStore()
 const name = ref('')
@@ -81,7 +82,7 @@ function addKeyword() {
 
 function save() {
   if (!name.value.trim()) {
-    uni.showToast({ title: '请输入姓名', icon: 'none' })
+    showToast('请输入姓名', 'error')
     return
   }
 
@@ -92,8 +93,10 @@ function save() {
     notes: notes.value,
   })
 
-  uni.showToast({ title: '添加成功', icon: 'success' })
-  setTimeout(() => uni.navigateBack(), 1500)
+  showSuccess('添加成功！')
+  setTimeout(() => {
+    uni.redirectTo({ url: '/pages/star/index?id=' + person.id })
+  }, 1000)
 }
 </script>
 

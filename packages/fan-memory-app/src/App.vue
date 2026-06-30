@@ -10,12 +10,33 @@
 /* 全局样式 */
 page {
   background-color: #F8F8F8;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
   color: #333;
+  -webkit-font-smoothing: antialiased;
 }
 
 .app {
   min-height: 100vh;
+}
+
+/* 渐入动画 */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10rpx); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* 卡片入场 */
+@keyframes cardIn {
+  from { opacity: 0; transform: scale(0.96); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.card-enter {
+  animation: cardIn 0.25s ease-out;
 }
 
 /* 通用卡片样式 */
@@ -31,18 +52,28 @@ page {
 .btn-primary {
   background: #007AFF;
   color: #FFFFFF;
-  border-radius: 8rpx;
-  padding: 16rpx 32rpx;
+  border-radius: 10rpx;
+  padding: 22rpx 32rpx;
   text-align: center;
   font-size: 28rpx;
+  font-weight: 600;
   border: none;
+  transition: opacity 0.2s;
+}
+
+.btn-primary:active {
+  opacity: 0.8;
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
 }
 
 .btn-secondary {
   background: #F0F0F0;
   color: #333;
-  border-radius: 8rpx;
-  padding: 16rpx 32rpx;
+  border-radius: 10rpx;
+  padding: 22rpx 32rpx;
   text-align: center;
   font-size: 28rpx;
   border: none;
@@ -52,11 +83,16 @@ page {
 .input-field {
   background: #FFFFFF;
   border: 2rpx solid #E0E0E0;
-  border-radius: 8rpx;
+  border-radius: 10rpx;
   padding: 20rpx 24rpx;
   font-size: 28rpx;
   width: 100%;
   box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.input-field:focus {
+  border-color: #007AFF;
 }
 
 /* 状态标签 */
@@ -81,5 +117,10 @@ page {
 .tag-gray {
   background: #F5F5F5;
   color: #999;
+}
+
+/* Safe area */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
 }
 </style>

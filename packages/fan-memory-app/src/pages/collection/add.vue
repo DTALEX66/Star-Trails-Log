@@ -4,12 +4,16 @@
       <!-- 链接输入 -->
       <view class="form-group">
         <text class="form-label">链接 *</text>
-        <input
-          class="input-field"
-          v-model="url"
-          placeholder="粘贴链接，自动识别平台"
-          @input="onUrlInput"
-        />
+        <view class="url-input-row">
+          <input
+            class="input-field url-input"
+            v-model="url"
+            placeholder="粘贴链接，自动识别平台和标题"
+            @input="onUrlInput"
+            @confirm="autoFillTitle"
+          />
+          <text class="auto-fill-btn" @click="autoFillTitle">提取</text>
+        </view>
         <text v-if="detectedPlatform" class="platform-badge">
           {{ detectedPlatform }}
         </text>
@@ -25,7 +29,7 @@
       <view class="form-group">
         <text class="form-label">关联人物</text>
         <view v-if="personStore.people.length === 0" class="empty-hint">
-          还没有关注任何明星，先去首页添加
+          还没有关注任何明星，先去<text class="link" @click="goAddStar">添加明星</text>
         </view>
         <view v-else class="person-select">
           <text
@@ -66,13 +70,17 @@
       <!-- 去重提示 -->
       <view v-if="duplicateHint" class="duplicate-warning">
         <text class="dup-icon">⚠️</text>
-        <text class="dup-text">这条内容已经收藏过（{{ duplicateHint }}）</text>
+        <view class="dup-content">
+          <text class="dup-text">已收藏过此链接：</text>
+          <text class="dup-title">{{ duplicateHint }}</text>
+        </view>
+        <text class="dup-btn" @click="copyUrl">复制原链接</text>
       </view>
 
       <!-- 按钮 -->
       <view class="form-actions">
-        <button class="btn-primary" :disabled="!!duplicateHint" @click="save">
-          收藏
+        <button class="btn-primary" @click="save" :disabled="isSaving">
+          {{ isSaving ? '收藏中...' : '收藏' }}
         </button>
       </view>
     </view>
@@ -81,9 +89,11 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { onShow } from '@dcloudio/uni-app'
 import { usePersonStore } from '@/stores/person'
 import { useContentStore } from '@/stores/content'
 import { identifyPlatform, getPlatformLabel } from '@/shared/utils/platform'
+import { showToast, showSuccess, extractTitleFromUrl } from '@/utils/toast'
 
 const personStore = usePersonStore()
 const contentStore = useContentStore()
@@ -94,20 +104,34 @@ const selectedPeople = ref<string[]>([])
 const tags = ref<string[]>([])
 const tagInput = ref('')
 const note = ref('')
+const isSaving = ref(false)
+
+onShow(() => {
+  personStore.load()
+  contentStore.load()
+})
 
 const detectedPlatform = computed(() => {
   if (!url.value) return ''
   const info = identifyPlatform(url.value)
-  return info ? info.label : ''
+  return info ? getPlatformLabel(info.platform) : ''
 })
 
 const duplicateHint = computed(() => {
+  if (!url.value) return ''
   const existing = contentStore.contents.find(c => c.url === url.value)
   return existing ? existing.title : ''
 })
 
 function onUrlInput() {
-  // Auto-detect platform when URL changes
+  // Reset title when URL changes drastically
+}
+
+function autoFillTitle() {
+  if (!url.value.trim()) return
+  if (!title.value.trim()) {
+    title.value = extractTitleFromUrl(url.value)
+  }
 }
 
 function togglePerson(id: string) {
@@ -121,20 +145,39 @@ function togglePerson(id: string) {
 
 function addTag() {
   if (tagInput.value.trim()) {
-    tags.value.push(tagInput.value.trim())
+    if (!tags.value.includes(tagInput.value.trim())) {
+      tags.value.push(tagInput.value.trim())
+    }
     tagInput.value = ''
   }
 }
 
-function save() {
+function goAddStar() {
+  uni.navigateTo({ url: '/pages/star/add' })
+}
+
+function copyUrl() {
+  const dup = contentStore.contents.find(c => c.url === url.value)
+  if (dup) {
+    uni.setClipboardData({ data: dup.url })
+    showToast('原链接已复制')
+  }
+}
+
+async function save() {
   if (!url.value.trim()) {
-    uni.showToast({ title: '请输入链接', icon: 'none' })
+    showToast('请输入链接', 'error')
     return
   }
   if (!title.value.trim()) {
-    uni.showToast({ title: '请输入标题', icon: 'none' })
+    showToast('请输入标题', 'error')
     return
   }
+
+  isSaving.value = true
+
+  // Auto-fill title if still empty
+  autoFillTitle()
 
   const result = contentStore.add({
     url: url.value.trim(),
@@ -144,11 +187,13 @@ function save() {
     note: note.value,
   })
 
+  isSaving.value = false
+
   if (result.duplicate) {
-    uni.showToast({ title: '已存在重复内容', icon: 'none' })
+    showToast('已存在重复内容', 'error')
   } else if (result.content) {
-    uni.showToast({ title: '收藏成功', icon: 'success' })
-    setTimeout(() => uni.navigateBack(), 1500)
+    showSuccess('收藏成功！')
+    setTimeout(() => uni.navigateBack(), 1200)
   }
 }
 </script>
@@ -201,6 +246,24 @@ function save() {
   font-size: 22rpx;
 }
 
+.url-input-row {
+  display: flex;
+  gap: 12rpx;
+}
+
+.url-input {
+  flex: 1;
+}
+
+.auto-fill-btn {
+  background: #F0F0F0;
+  color: #666;
+  padding: 20rpx 24rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  white-space: nowrap;
+}
+
 .person-select {
   display: flex;
   flex-wrap: wrap;
@@ -251,12 +314,41 @@ function save() {
 
 .dup-icon {
   font-size: 28rpx;
+  flex-shrink: 0;
+}
+
+.dup-content {
+  flex: 1;
+  min-width: 0;
 }
 
 .dup-text {
-  font-size: 24rpx;
+  font-size: 22rpx;
   color: #E65100;
-  flex: 1;
+  display: block;
+}
+
+.dup-title {
+  font-size: 24rpx;
+  color: #BF360C;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dup-btn {
+  font-size: 22rpx;
+  color: #007AFF;
+  background: #E8F0FE;
+  padding: 6rpx 16rpx;
+  border-radius: 6rpx;
+  flex-shrink: 0;
+}
+
+.link {
+  color: #007AFF;
+  text-decoration: underline;
 }
 
 .form-actions {

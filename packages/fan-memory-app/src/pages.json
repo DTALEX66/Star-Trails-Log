@@ -63,6 +63,10 @@
     "backgroundColor": "#F8F8F8",
     "usingComponents": true
   },
+  "app-plus": {
+    "animationType": "slide-in-right",
+    "animationDuration": 200
+  },
   "tabBar": {
     "color": "#999999",
     "selectedColor": "#007AFF",
