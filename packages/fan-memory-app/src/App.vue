@@ -4,6 +4,24 @@
 </template>
 
 <script setup lang="ts">
+import { onShow } from '@dcloudio/uni-app'
+import { useDiscoveryStore } from '@/stores/discovery'
+
+const discoveryStore = useDiscoveryStore()
+
+// 每次显示页面时更新小红点和连接状态
+onShow(async () => {
+  const connected = await discoveryStore.checkConnection()
+  if (connected) {
+    await discoveryStore.loadStats()
+    const count = discoveryStore.stats.new_count
+    if (count > 0) {
+      uni.setTabBarBadge({ index: 4, text: String(Math.min(count, 99)) })
+    } else {
+      uni.removeTabBarBadge({ index: 4 })
+    }
+  }
+})
 </script>
 
 <style>

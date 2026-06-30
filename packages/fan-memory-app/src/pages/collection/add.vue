@@ -92,11 +92,13 @@ import { ref, computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { usePersonStore } from '@/stores/person'
 import { useContentStore } from '@/stores/content'
+import { useDiscoveryStore } from '@/stores/discovery'
 import { identifyPlatform, getPlatformLabel } from '@/shared/utils/platform'
 import { showToast, showSuccess, extractTitleFromUrl } from '@/utils/toast'
 
 const personStore = usePersonStore()
 const contentStore = useContentStore()
+const discoveryStore = useDiscoveryStore()
 
 const url = ref('')
 const title = ref('')
@@ -192,6 +194,9 @@ async function save() {
   if (result.duplicate) {
     showToast('已存在重复内容', 'error')
   } else if (result.content) {
+    // 同步到后端：通知发现服务标记为已收藏
+    discoveryStore.loadNewDiscoveries(10) // 刷新发现列表
+
     showSuccess('收藏成功！')
     setTimeout(() => uni.navigateBack(), 1200)
   }
