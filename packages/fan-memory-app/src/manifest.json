@@ -1,0 +1,26 @@
+{
+  "name": "Fan Memory OS",
+  "appid": "__UNI__FANMEMORY",
+  "description": "追星资料库 - 收藏你关注的明星/团队",
+  "versionName": "0.1.0",
+  "versionCode": 1,
+  "transformPx": false,
+  "app-plus": {
+    "usingComponents": true,
+    "nvueStyleCompiler": "uni-app",
+    "compilerVersion": 3
+  },
+  "quickapp": {},
+  "mp-weixin": {
+    "appid": "",
+    "setting": {
+      "urlCheck": false,
+      "es6": true,
+      "postcss": true,
+      "minified": true
+    },
+    "usingComponents": true,
+    "permission": {}
+  },
+  "vueVersion": "3"
+}
