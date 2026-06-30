@@ -55,9 +55,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { usePersonStore } from '@/stores/person'
+import { useDiscoveryStore } from '@/stores/discovery'
 import { showToast, showSuccess } from '@/utils/toast'
 
 const personStore = usePersonStore()
+const discoveryStore = useDiscoveryStore()
 const name = ref('')
 const type = ref<'star' | 'group'>('star')
 const aliases = ref<string[]>([])
@@ -91,6 +93,15 @@ function save() {
     aliases: aliases.value,
     keywords: keywords.value.length > 0 ? keywords.value : [name.value.trim()],
     notes: notes.value,
+  })
+
+  // 同步到后端
+  discoveryStore.syncPerson({
+    uid: person.id,
+    name: person.name,
+    type: person.type,
+    aliases: person.aliases,
+    keywords: person.keywords,
   })
 
   showSuccess('添加成功！')
