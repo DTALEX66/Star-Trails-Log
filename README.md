@@ -1,68 +1,57 @@
-# Star-Trails-Log · Fan Memory OS
+# Fan Memory OS (Star-Trails-Log)
 
-> **明星内容收藏 + 更新发现 + 本地记忆 + 时间线管理工具**
->
-> 以明星/团队为中心的追星资料系统。不是视频下载器，不是AI剪辑系统，不是重度爬虫——它是一个数字追星资料夹。
+> 以明星/团队为中心的追星资料库 + 轻量自动发现提醒系统
 
 ---
 
-## 项目定位
+## 快速启动
 
-**Fan Memory OS** 是一个以**明星/团队为中心**的内容收藏与更新发现系统。
+### 前置要求
 
-现有工具都是 **内容中心**（收藏了某条视频/文章），而 Fan Memory OS 是 **人物中心**（围绕某个明星/团队，收集全平台内容）。
+| 工具 | 版本要求 |
+|------|----------|
+| Node.js | >= 18 |
+| npm | >= 9 |
+| Python | >= 3.11 |
 
-### 核心能力
+### 1. 启动前端 (H5)
 
-| 能力 | 说明 |
-|------|------|
-| 📥 **收藏** | 粘贴链接/分享进应用，自动识别平台 |
-| 🔍 **发现** | 轻量检查关注对象的公开更新 |
-| 🧹 **去重** | URL/ID/标题多维去重 |
-| 👤 **人物档案** | 每个明星/团队一个主页 |
-| 📅 **时间线** | 按日期/人物/平台查看追星轨迹 |
-| 🔎 **搜索** | 搜人物/平台/标签/日期 |
-| 🔔 **提醒** | 新内容/生日/发歌/开播提醒 |
-| 📦 **导入导出** | JSON 全量备份/迁移 |
+```bash
+# 安装依赖
+cd packages/fan-memory-app
+npm install --legacy-peer-deps
 
-### 三个阶段
+# 开发模式
+npm run dev:h5
 
-| Phase | 内容 | 状态 |
-|-------|------|------|
-| **Phase 1** | 本地收藏 MVP（纯本地，无后端） | 🚧 进行中 |
-| **Phase 2** | 轻量自动发现提醒 | 📋 规划中 |
-| **Phase 3** | App 增强版（分享接入/OCR/SQLite） | 📋 规划中 |
+# 生产构建
+npm run build:h5
+# 输出在 dist/build/h5/
+```
 
----
+### 2. 启动后端 (发现服务)
 
-## Phase 1：本地收藏 MVP
+```bash
+cd packages/discovery-service
 
-当前开发阶段。不依赖服务器、AI 或复杂平台接口。
+# 创建虚拟环境
+python -m venv .venv
 
-### 功能清单
+# Windows:
+.venv\Scripts\pip install -r requirements.txt
+.venv\Scripts\python -m uvicorn app.main:app --port 8766
 
-- [ ] 添加明星/团队
-- [ ] 添加别名/关键词
-- [ ] 粘贴链接收藏
-- [ ] 平台自动识别
-- [ ] 手动添加人物标签
-- [ ] 收藏库（卡片列表）
-- [ ] 去重提醒
-- [ ] 已看/未看切换
-- [ ] 忽略/屏蔽
-- [ ] 时间线
-- [ ] 搜索
-- [ ] JSON 导出/导入
+# macOS/Linux:
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --port 8766
+```
 
-### 技术栈
+### 3. 或用 Docker 启动后端
 
-| 层 | 选型 |
-|----|------|
-| 前端框架 | uni-app (Vue 3) |
-| 编译目标 | 微信小程序 / H5 |
-| 状态管理 | Pinia |
-| 本地存储 | uni-app 本地缓存 |
-| 备份格式 | JSON |
+```bash
+docker compose up -d
+```
 
 ---
 
@@ -70,56 +59,87 @@
 
 ```
 Star-Trails-Log/
-├── docs/                          # 项目文档
-│   ├── ARCHITECTURE.md            # 架构设计
-│   ├── DATA_MODEL.md              # 数据模型
-│   └── PHASE_PLAN.md              # 分阶段开发计划
+├── docs/                              # 项目文档
+│   ├── ARCHITECTURE.md                # 架构设计
+│   ├── DATA_MODEL.md                  # 数据模型
+│   └── PHASE_PLAN.md                  # 开发路线
+├── shared/                            # 共享类型定义
+│   ├── models/index.ts                # TypeScript 类型
+│   └── utils/                         # ID/平台识别工具
+├── scripts/
+│   └── test-core-logic.js             # 38 个核心逻辑测试
 ├── packages/
-│   └── fan-memory-app/            # uni-app 前端项目
-│       └── src/
-│           ├── pages/             # 页面
-│           ├── components/        # 通用组件
-│           ├── stores/            # Pinia 状态
-│           ├── models/            # TypeScript 类型定义
-│           ├── utils/             # 工具函数
-│           └── static/            # 静态资源
-├── shared/                        # 共享模块
-│   ├── models/                    # 数据模型定义
-│   └── utils/                     # 通用工具
-├── scripts/                       # 构建/工具脚本
-└── assets/                        # 项目资源
+│   ├── fan-memory-app/                # 前端 (uni-app)
+│   │   ├── src/
+│   │   │   ├── pages/                 # 16 个页面
+│   │   │   ├── stores/                # 4 个 Pinia store
+│   │   │   ├── utils/                 # 工具函数
+│   │   │   └── shared/                # 本地类型
+│   │   └── H5 构建 ✅
+│   └── discovery-service/             # 后端 (FastAPI)
+│       ├── app/
+│       │   ├── models.py              # SQLite 4 表
+│       │   ├── routers/               # 14 个 API
+│       │   ├── services/              # RSSHub + 去重
+│       │   └── tasks/                 # 定时检查
+│       ├── tests/test_api.py          # 12 个 API 测试 ✅
+│       └── Dockerfile
+├── docker-compose.yml                 # 一键部署
+└── .gitignore
 ```
 
 ---
 
-## 开发
+## 架构一览
+
+```
+uni-app 前端 ←── API ──→ FastAPI 后端
+  │                              │
+  │ 16 页面                      │ SQLite 存储
+  │ 4 个 Pinia store             │ RSSHub 发现
+  │ 平台自动识别                  │ 定时检查
+  │ 去重引擎                      │ 新内容提醒
+```
+
+### 核心 API 端点
+
+| 端点 | 说明 |
+|------|------|
+| `GET /api/health` | 健康检查 |
+| `GET /api/stats` | 全局统计 |
+| `GET /api/people/` | 人物列表 |
+| `POST /api/people/` | 创建人物 |
+| `POST /api/people/{uid}/sources` | 添加追踪源 |
+| `GET /api/discovery/new` | 新发现内容 |
+| `POST /api/discovery/trigger` | 手动触发检查 |
+| `POST /api/discovery/{id}/action` | 用户操作 |
+
+---
+
+## 测试
 
 ```bash
-# 安装依赖
-cd packages/fan-memory-app
-npm install
+# 核心逻辑测试 (38 个)
+node scripts/test-core-logic.js
 
-# H5 开发
-npm run dev:h5
-
-# 微信小程序开发
-npm run dev:mp-weixin
-
-# 构建
-npm run build
+# API 测试 (12 个) — 需先启动后端
+cd packages/discovery-service
+.venv\Scripts\python tests/test_api.py
 ```
 
 ---
 
-## 设计理念
+## 技术栈
 
-> **先收藏，后整理，再发现**
-
-1. **快速入口**：看到内容一键收藏，不打断当前浏览
-2. **自动识别**：粘贴链接自动识别平台、标题、封面
-3. **人物中心**：每条内容归属到具体明星/团队
-4. **轻量发现**：定期检查公开更新，发现新内容
-5. **用户控制**：收藏/忽略/屏蔽，完全由用户决定
+| 层 | 技术 |
+|----|------|
+| 前端 | uni-app (Vue 3 + Vite + TypeScript) |
+| 状态管理 | Pinia |
+| 后端 | Python FastAPI + SQLAlchemy async |
+| 数据库 | SQLite |
+| 发现引擎 | RSSHub |
+| 定时调度 | APScheduler |
+| 部署 | Docker / docker-compose |
 
 ---
 

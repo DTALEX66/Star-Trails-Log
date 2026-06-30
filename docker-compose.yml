@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  discovery:
+    build:
+      context: ./packages/discovery-service
+      dockerfile: Dockerfile
+    ports:
+      - "8766:8766"
+    volumes:
+      - discovery-data:/app/data
+    environment:
+      - APP_NAME=Fan Memory OS Discovery
+      - APP_VERSION=0.2.0
+      - DATABASE_URL=sqlite+aiosqlite:///./data/discovery.db
+      - RSSHUB_BASE_URL=https://rsshub.app
+      - DISCOVERY_INTERVAL_MINUTES=60
+      - DISCOVERY_ENABLED=true
+      - CORS_ORIGINS=["*"]
+    restart: unless-stopped
+
+volumes:
+  discovery-data:
