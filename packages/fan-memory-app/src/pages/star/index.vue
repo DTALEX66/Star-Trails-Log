@@ -9,6 +9,7 @@
         <text class="profile-name">{{ person?.name }}</text>
         <text class="profile-type">{{ person?.type === 'group' ? '团体' : '个人' }}</text>
       </view>
+      <text class="edit-btn" @click="goEdit">编辑</text>
     </view>
 
     <!-- 统计 -->
@@ -44,7 +45,7 @@
           v-for="item in contents"
           :key="item.id"
           class="content-card"
-          @click="openUrl(item.url)"
+          @click="goDetail(item.id)"
         >
           <view class="card-header">
             <text class="platform-tag">{{ getPlatformLabel(item.platform) }}</text>
@@ -109,6 +110,14 @@ function openUrl(url: string) {
   uni.setClipboardData({ data: url })
   uni.showToast({ title: '链接已复制', icon: 'none' })
 }
+
+function goDetail(id: string) {
+  uni.navigateTo({ url: '/pages/collection/detail?id=' + id })
+}
+
+function goEdit() {
+  uni.navigateTo({ url: '/pages/star/edit?id=' + personId.value })
+}
 </script>
 
 <style scoped>
@@ -155,6 +164,15 @@ function openUrl(url: string) {
   color: #999;
   margin-top: 4rpx;
   display: block;
+}
+
+.edit-btn {
+  font-size: 24rpx;
+  color: #007AFF;
+  background: #E8F0FE;
+  padding: 8rpx 20rpx;
+  border-radius: 6rpx;
+  flex-shrink: 0;
 }
 
 .stats {

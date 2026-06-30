@@ -33,7 +33,7 @@
         v-for="item in filteredContents"
         :key="item.id"
         class="content-card"
-        @click="openUrl(item.url)"
+        @click="goDetail(item.id)"
       >
         <view class="card-header">
           <text class="platform-tag">{{ getPlatformLabel(item.platform) }}</text>
@@ -114,6 +114,10 @@ function confirmDelete(item: any) {
 function openUrl(url: string) {
   uni.setClipboardData({ data: url })
   uni.showToast({ title: '链接已复制', icon: 'none' })
+}
+
+function goDetail(id: string) {
+  uni.navigateTo({ url: '/pages/collection/detail?id=' + id })
 }
 </script>
 

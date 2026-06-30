@@ -184,6 +184,12 @@ class StorageService {
     })
   }
 
+  deleteIgnoreRule(id: string): void {
+    const db = this.load()
+    db.ignore_rules = db.ignore_rules.filter(r => r.id !== id)
+    this.save()
+  }
+
   // ============ Tags ============
 
   getAllTags(): string[] {

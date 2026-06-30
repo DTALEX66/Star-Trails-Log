@@ -25,6 +25,18 @@
     <view class="settings-section">
       <text class="section-title">管理</text>
 
+      <view class="settings-item" @click="navTo('/pages/team/index')">
+        <text class="item-label">团队管理</text>
+        <text class="item-value">组合/团体</text>
+        <text class="arrow">›</text>
+      </view>
+
+      <view class="settings-item" @click="navTo('/pages/block/index')">
+        <text class="item-label">屏蔽规则</text>
+        <text class="item-value">关键词/作者/平台</text>
+        <text class="arrow">›</text>
+      </view>
+
       <view class="settings-item" @click="confirmReset">
         <text class="item-label" style="color: #FF5252;">重置所有数据</text>
         <text class="arrow">›</text>
@@ -112,6 +124,10 @@ function confirmReset() {
       }
     }
   })
+}
+
+function navTo(path: string) {
+  uni.navigateTo({ url: path })
 }
 </script>
 

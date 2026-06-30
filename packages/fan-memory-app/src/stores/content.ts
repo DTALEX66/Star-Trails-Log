@@ -102,6 +102,14 @@ export const useContentStore = defineStore('content', () => {
     if (content) content.status = status
   }
 
+  function updateContent(id: string, updates: Partial<Content>) {
+    storageService.updateContent(id, updates)
+    const index = contents.value.findIndex(c => c.id === id)
+    if (index !== -1) {
+      contents.value[index] = { ...contents.value[index], ...updates, updated_at: new Date().toISOString().split('T')[0] }
+    }
+  }
+
   function remove(id: string) {
     storageService.deleteContent(id)
     contents.value = contents.value.filter(c => c.id !== id)
@@ -145,6 +153,7 @@ export const useContentStore = defineStore('content', () => {
     add,
     toggleWatched,
     updateStatus,
+    updateContent,
     remove,
     search,
     getTimeline,

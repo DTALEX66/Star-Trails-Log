@@ -1,60 +1,20 @@
 {
   "pages": [
-    {
-      "path": "pages/index/index",
-      "style": {
-        "navigationBarTitleText": "Fan Memory OS",
-        "enablePullDownRefresh": true
-      }
-    },
-    {
-      "path": "pages/star/index",
-      "style": {
-        "navigationBarTitleText": "明星主页"
-      }
-    },
-    {
-      "path": "pages/star/add",
-      "style": {
-        "navigationBarTitleText": "添加明星"
-      }
-    },
-    {
-      "path": "pages/collection/index",
-      "style": {
-        "navigationBarTitleText": "收藏库"
-      }
-    },
-    {
-      "path": "pages/collection/add",
-      "style": {
-        "navigationBarTitleText": "添加收藏"
-      }
-    },
-    {
-      "path": "pages/timeline/index",
-      "style": {
-        "navigationBarTitleText": "时间线"
-      }
-    },
-    {
-      "path": "pages/search/index",
-      "style": {
-        "navigationBarTitleText": "搜索"
-      }
-    },
-    {
-      "path": "pages/reminder/index",
-      "style": {
-        "navigationBarTitleText": "提醒"
-      }
-    },
-    {
-      "path": "pages/settings/index",
-      "style": {
-        "navigationBarTitleText": "设置"
-      }
-    }
+    { "path": "pages/index/index", "style": { "navigationBarTitleText": "Fan Memory OS", "enablePullDownRefresh": true } },
+    { "path": "pages/star/index", "style": { "navigationBarTitleText": "明星主页" } },
+    { "path": "pages/star/add", "style": { "navigationBarTitleText": "添加明星" } },
+    { "path": "pages/star/edit", "style": { "navigationBarTitleText": "编辑明星" } },
+    { "path": "pages/collection/index", "style": { "navigationBarTitleText": "收藏库" } },
+    { "path": "pages/collection/add", "style": { "navigationBarTitleText": "添加收藏" } },
+    { "path": "pages/collection/detail", "style": { "navigationBarTitleText": "内容详情" } },
+    { "path": "pages/timeline/index", "style": { "navigationBarTitleText": "时间线" } },
+    { "path": "pages/search/index", "style": { "navigationBarTitleText": "搜索" } },
+    { "path": "pages/reminder/index", "style": { "navigationBarTitleText": "提醒" } },
+    { "path": "pages/team/index", "style": { "navigationBarTitleText": "团队管理" } },
+    { "path": "pages/team/add", "style": { "navigationBarTitleText": "添加团队" } },
+    { "path": "pages/team/detail", "style": { "navigationBarTitleText": "团队主页" } },
+    { "path": "pages/block/index", "style": { "navigationBarTitleText": "屏蔽规则" } },
+    { "path": "pages/settings/index", "style": { "navigationBarTitleText": "设置" } }
   ],
   "globalStyle": {
     "navigationBarTextStyle": "black",
@@ -73,36 +33,11 @@
     "backgroundColor": "#FFFFFF",
     "borderStyle": "black",
     "list": [
-      {
-        "pagePath": "pages/index/index",
-        "text": "首页",
-        "iconPath": "static/icons/home.png",
-        "selectedIconPath": "static/icons/home-active.png"
-      },
-      {
-        "pagePath": "pages/collection/index",
-        "text": "收藏",
-        "iconPath": "static/icons/collection.png",
-        "selectedIconPath": "static/icons/collection-active.png"
-      },
-      {
-        "pagePath": "pages/timeline/index",
-        "text": "时间线",
-        "iconPath": "static/icons/timeline.png",
-        "selectedIconPath": "static/icons/timeline-active.png"
-      },
-      {
-        "pagePath": "pages/search/index",
-        "text": "搜索",
-        "iconPath": "static/icons/search.png",
-        "selectedIconPath": "static/icons/search-active.png"
-      },
-      {
-        "pagePath": "pages/settings/index",
-        "text": "设置",
-        "iconPath": "static/icons/settings.png",
-        "selectedIconPath": "static/icons/settings-active.png"
-      }
+      { "pagePath": "pages/index/index", "text": "首页", "iconPath": "static/icons/home.svg", "selectedIconPath": "static/icons/home-active.svg" },
+      { "pagePath": "pages/collection/index", "text": "收藏", "iconPath": "static/icons/collection.svg", "selectedIconPath": "static/icons/collection-active.svg" },
+      { "pagePath": "pages/timeline/index", "text": "时间线", "iconPath": "static/icons/timeline.svg", "selectedIconPath": "static/icons/timeline-active.svg" },
+      { "pagePath": "pages/search/index", "text": "搜索", "iconPath": "static/icons/search.svg", "selectedIconPath": "static/icons/search-active.svg" },
+      { "pagePath": "pages/settings/index", "text": "设置", "iconPath": "static/icons/settings.svg", "selectedIconPath": "static/icons/settings-active.svg" }
     ]
   }
 }
