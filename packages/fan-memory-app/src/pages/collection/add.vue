@@ -197,6 +197,9 @@ async function save() {
     // 同步到后端：通知发现服务标记为已收藏
     discoveryStore.loadNewDiscoveries(10) // 刷新发现列表
 
+    // 尝试匹配后端的发现内容，标记为已收藏
+    discoveryStore.markUrlAsSaved(result.content.url)
+
     showSuccess('收藏成功！')
     setTimeout(() => uni.navigateBack(), 1200)
   }

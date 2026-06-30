@@ -89,6 +89,18 @@ export const useDiscoveryStore = defineStore('discovery', () => {
     return r.ok
   }
 
+  async function markUrlAsSaved(url: string) {
+    // 在后端发现列表中查找匹配 URL，标记为已收藏
+    const r = await api.listDiscoveries({ limit: 50 })
+    if (r.ok && r.data) {
+      const match = r.data.find((d: any) => d.url === url && d.status === 'NEW')
+      if (match) {
+        await api.actionDiscovery(match.id, 'save')
+        await loadStats()
+      }
+    }
+  }
+
   return {
     discoveries,
     stats,
@@ -104,5 +116,6 @@ export const useDiscoveryStore = defineStore('discovery', () => {
     triggerDiscovery,
     syncPerson,
     syncSource,
+    markUrlAsSaved,
   }
 })

@@ -1,6 +1,21 @@
 <template>
   <view class="page-settings">
     <view class="settings-section">
+      <text class="section-title">连接</text>
+
+      <view class="settings-item">
+        <text class="item-label">后端地址</text>
+        <input class="item-input" v-model="backendUrl" placeholder="http://localhost:8766" @blur="saveBackendUrl" />
+      </view>
+
+      <view class="settings-item" @click="testConnection">
+        <text class="item-label">测试连接</text>
+        <text class="item-value">{{ connectionStatus }}</text>
+        <text class="arrow">›</text>
+      </view>
+    </view>
+
+    <view class="settings-section">
       <text class="section-title">数据</text>
 
       <view class="settings-item" @click="exportData">
@@ -56,13 +71,22 @@ import { onShow } from '@dcloudio/uni-app'
 import { useContentStore } from '@/stores/content'
 import { usePersonStore } from '@/stores/person'
 import { storageService } from '@/utils/storage'
+import { api } from '@/utils/api'
+import { showToast, showSuccess } from '@/utils/toast'
 
 const contentStore = useContentStore()
 const personStore = usePersonStore()
 
-onShow(() => {
+const API_URL_KEY = 'fan_memory_api_url'
+const backendUrl = ref('http://localhost:8766')
+const connectionStatus = ref('未测试')
+
+onShow(async () => {
   contentStore.load()
   personStore.load()
+  backendUrl.value = String(uni.getStorageSync(API_URL_KEY) || 'http://localhost:8766')
+  // Auto-test connection
+  testConnection()
 })
 
 const stats = computed(() => {
@@ -71,26 +95,42 @@ const stats = computed(() => {
   return `${p} 人 · ${c} 条`
 })
 
+function saveBackendUrl() {
+  const url = backendUrl.value.replace(/\/+$/, '')
+  backendUrl.value = url
+  try { uni.setStorageSync(API_URL_KEY, url) } catch {}
+  showToast('地址已保存')
+}
+
+async function testConnection() {
+  connectionStatus.value = '检测中...'
+  try {
+    const r = await fetch(`${backendUrl.value}/api/health`)
+    const data = await r.json()
+    if (data.status === 'ok') {
+      connectionStatus.value = '✅ 已连接'
+      showSuccess('后端连接成功')
+    } else {
+      connectionStatus.value = '❌ 连接异常'
+    }
+  } catch {
+    connectionStatus.value = '❌ 无法连接'
+    showToast('无法连接到后端', 'error')
+  }
+}
+
 function exportData() {
   const json = storageService.exportJSON()
-  // 保存到文件 (uni-app中通过文件系统)
   uni.setClipboardData({
     data: json,
-    success: () => {
-      uni.showToast({ title: '已复制到剪贴板', icon: 'success' })
-    }
+    success: () => showSuccess('已复制到剪贴板'),
   })
 }
 
 function importData() {
   uni.showModal({
     title: '导入数据',
-    content: '将 JSON 数据粘贴到输入框？',
-    success: (res) => {
-      if (res.confirm) {
-        uni.showToast({ title: '请在控制台调用 storageService.importJSON()', icon: 'none' })
-      }
-    }
+    content: '请将 JSON 数据粘贴到控制台调用 storageService.importJSON()',
   })
 }
 
@@ -103,12 +143,7 @@ function showStats() {
     `标签：${db.tags.length}`,
     `最后更新：${db.last_updated?.slice(0, 10) || '-'}`,
   ].join('\n')
-
-  uni.showModal({
-    title: '数据统计',
-    content: msg,
-    showCancel: false,
-  })
+  uni.showModal({ title: '数据统计', content: msg, showCancel: false })
 }
 
 function confirmReset() {
@@ -120,9 +155,9 @@ function confirmReset() {
         storageService.reset()
         contentStore.load()
         personStore.load()
-        uni.showToast({ title: '已重置', icon: 'success' })
+        showSuccess('已重置')
       }
-    }
+    },
   })
 }
 
@@ -132,59 +167,15 @@ function navTo(path: string) {
 </script>
 
 <style scoped>
-.page-settings {
-  padding: 16rpx 0;
-}
-
-.settings-section {
-  margin-bottom: 24rpx;
-}
-
-.section-title {
-  font-size: 24rpx;
-  color: #999;
-  padding: 16rpx 32rpx 8rpx;
-  display: block;
-}
-
-.settings-item {
-  background: #FFFFFF;
-  padding: 24rpx 32rpx;
-  display: flex;
-  align-items: center;
-  border-bottom: 2rpx solid #F5F5F5;
-}
-
-.settings-item:last-child {
-  border-bottom: none;
-}
-
-.item-label {
-  flex: 1;
-  font-size: 28rpx;
-  color: #333;
-}
-
-.item-value {
-  font-size: 24rpx;
-  color: #999;
-  margin-right: 8rpx;
-}
-
-.arrow {
-  font-size: 28rpx;
-  color: #ccc;
-}
-
-.settings-footer {
-  text-align: center;
-  padding: 48rpx 32rpx;
-}
-
-.footer-text {
-  font-size: 22rpx;
-  color: #ccc;
-  display: block;
-  margin-bottom: 4rpx;
-}
+.page-settings { padding: 16rpx 0; }
+.settings-section { margin-bottom: 24rpx; }
+.section-title { font-size: 24rpx; color: #999; padding: 16rpx 32rpx 8rpx; display: block; }
+.settings-item { background: #FFF; padding: 24rpx 32rpx; display: flex; align-items: center; border-bottom: 2rpx solid #F5F5F5; }
+.settings-item:last-child { border-bottom: none; }
+.item-label { flex: 1; font-size: 28rpx; color: #333; }
+.item-input { flex: 1; font-size: 26rpx; color: #007AFF; text-align: right; border: none; padding: 0; }
+.item-value { font-size: 24rpx; color: #999; margin-right: 8rpx; }
+.arrow { font-size: 28rpx; color: #ccc; }
+.settings-footer { text-align: center; padding: 48rpx 32rpx; }
+.footer-text { font-size: 22rpx; color: #ccc; display: block; margin-bottom: 4rpx; }
 </style>

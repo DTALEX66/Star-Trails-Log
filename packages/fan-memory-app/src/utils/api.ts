@@ -1,10 +1,19 @@
 /**
  * 后端 API 客户端
  * 连接 discovery-service (FastAPI)
+ * 地址从 uni-app 本地存储读取，默认为 localhost:8766
  */
 
-// 后端地址 — 开发时指向本地，生产替换为服务器地址
-const API_BASE = 'http://localhost:8766/api'
+const API_URL_KEY = 'fan_memory_api_url'
+const DEFAULT_URL = 'http://localhost:8766'
+
+function getBaseUrl(): string {
+  try {
+    return String(uni.getStorageSync(API_URL_KEY) || DEFAULT_URL).replace(/\/+$/, '')
+  } catch {
+    return DEFAULT_URL
+  }
+}
 
 interface ApiResult<T> {
   data?: T
@@ -13,10 +22,8 @@ interface ApiResult<T> {
 }
 
 class ApiClient {
-  private base: string
-
-  constructor(base: string = API_BASE) {
-    this.base = base
+  get baseUrl(): string {
+    return getBaseUrl() + '/api'
   }
 
   private async request<T>(
@@ -25,7 +32,7 @@ class ApiClient {
     body?: any
   ): Promise<ApiResult<T>> {
     try {
-      const url = `${this.base}${path}`
+      const url = `${this.baseUrl}${path}`
       const options: any = {
         method,
         headers: { 'Content-Type': 'application/json' },
