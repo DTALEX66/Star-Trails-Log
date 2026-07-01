@@ -20,6 +20,10 @@
         <text class="stat-num">{{ stats.total_sources }}</text>
         <text class="stat-label">追踪源</text>
       </view>
+      <view class="stat-item">
+        <text class="stat-num">{{ oldItems.length }}</text>
+        <text class="stat-label">已处理</text>
+      </view>
     </view>
 
     <!-- 操作按钮 -->
@@ -79,6 +83,7 @@
             <view class="card-actions">
               <text class="action-save" @click="save(item)">收藏</text>
               <text class="action-ignore" @click="ignore(item)">忽略</text>
+              <text class="action-block" @click="block(item)">屏蔽</text>
             </view>
           </view>
         </view>
@@ -89,6 +94,7 @@
     <view v-if="oldItems.length > 0" class="section">
       <view class="section-header">
         <text class="section-title">已处理</text>
+        <text class="section-subtitle">收藏 {{ savedCount }} · 忽略 {{ ignoredCount }} · 屏蔽 {{ blockedCount }}</text>
       </view>
       <view class="history-list">
         <view v-for="item in oldItems" :key="item.id" class="history-item">
@@ -142,6 +148,10 @@ const oldItems = computed(() =>
   discoveryStore.discoveries.filter(d => d.status !== 'NEW').slice(0, 20)
 )
 
+const savedCount = computed(() => discoveryStore.discoveries.filter(d => d.status === 'SAVED').length)
+const ignoredCount = computed(() => discoveryStore.discoveries.filter(d => d.status === 'IGNORED').length)
+const blockedCount = computed(() => discoveryStore.discoveries.filter(d => d.status === 'BLOCKED').length)
+
 function statusLabel(s: string) {
   const map: Record<string, string> = { SAVED: '已收藏', IGNORED: '已忽略', BLOCKED: '已屏蔽' }
   return map[s] || s
@@ -167,6 +177,11 @@ async function save(item: any) {
 async function ignore(item: any) {
   await discoveryStore.takeAction(item.id, 'ignore')
   showSuccess('已忽略')
+}
+
+async function block(item: any) {
+  await discoveryStore.takeAction(item.id, 'block')
+  showSuccess('已屏蔽')
 }
 
 async function createSource() {
@@ -197,7 +212,7 @@ async function createSource() {
 .offline-text { font-size: 26rpx; color: #E65100; display: block; }
 .offline-hint { font-size: 22rpx; color: #FFB74D; margin-top: 4rpx; display: block; }
 
-.stats-bar { display: flex; justify-content: space-around; padding: 24rpx; background: #FFF; margin: 16rpx; border-radius: 12rpx; }
+.stats-bar { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8rpx; padding: 24rpx; background: #FFF; margin: 16rpx; border-radius: 12rpx; }
 .stat-item { text-align: center; }
 .stat-num { font-size: 36rpx; font-weight: 700; color: #007AFF; display: block; }
 .stat-label { font-size: 22rpx; color: #999; margin-top: 4rpx; display: block; }
@@ -212,8 +227,9 @@ async function createSource() {
 .form-card .btn-primary { width: 100%; }
 
 .section { padding: 0 16rpx; margin-bottom: 16rpx; }
-.section-header { display: flex; align-items: center; gap: 12rpx; padding: 16rpx; }
+.section-header { display: flex; align-items: center; gap: 12rpx; padding: 16rpx; flex-wrap: wrap; }
 .section-title { font-size: 28rpx; font-weight: 600; }
+.section-subtitle { font-size: 21rpx; color: #aaa; }
 .badge { background: #FF5252; color: #FFF; font-size: 20rpx; padding: 2rpx 14rpx; border-radius: 20rpx; }
 
 .loading-state { text-align: center; padding: 60rpx; }
@@ -236,6 +252,7 @@ async function createSource() {
 .card-actions { display: flex; gap: 12rpx; }
 .action-save { font-size: 22rpx; color: #007AFF; padding: 4rpx 16rpx; background: #E8F0FE; border-radius: 4rpx; }
 .action-ignore { font-size: 22rpx; color: #999; padding: 4rpx 16rpx; background: #F5F5F5; border-radius: 4rpx; }
+.action-block { font-size: 22rpx; color: #FF5252; padding: 4rpx 16rpx; background: #FFEBEE; border-radius: 4rpx; }
 
 .history-list { background: #FFF; border-radius: 12rpx; overflow: hidden; }
 .history-item { display: flex; align-items: center; padding: 16rpx 20rpx; border-bottom: 2rpx solid #F5F5F5; gap: 12rpx; }
