@@ -95,7 +95,7 @@ async function save() {
 
   showSuccess('添加成功！')
   setTimeout(() => {
-    uni.redirectTo({ url: '/pages/star/index?id=' + person.id })
+    uni.redirectTo({ url: '/pages/star/discovery-init?id=' + person.id })
   }, 1000)
 }
 </script>

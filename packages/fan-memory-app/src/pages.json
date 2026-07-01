@@ -3,6 +3,7 @@
     { "path": "pages/index/index", "style": { "navigationBarTitleText": "Fan Memory OS", "enablePullDownRefresh": true } },
     { "path": "pages/star/index", "style": { "navigationBarTitleText": "明星主页" } },
     { "path": "pages/star/add", "style": { "navigationBarTitleText": "添加明星" } },
+    { "path": "pages/star/discovery-init", "style": { "navigationBarTitleText": "发现初始化" } },
     { "path": "pages/star/edit", "style": { "navigationBarTitleText": "编辑明星" } },
     { "path": "pages/collection/index", "style": { "navigationBarTitleText": "收藏库" } },
     { "path": "pages/collection/add", "style": { "navigationBarTitleText": "添加收藏" } },
