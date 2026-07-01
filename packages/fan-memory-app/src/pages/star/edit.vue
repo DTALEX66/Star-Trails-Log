@@ -75,9 +75,9 @@ function save() {
 }
 
 function confirmDelete() {
-  confirm('确认删除', `删除「${person.value?.name}」及其所有收藏？不可恢复！`).then(ok => {
+  confirm('确认删除', `删除「${person.value?.name}」及其所有收藏？不可恢复！`).then(async ok => {
     if (ok) {
-      personStore.remove(personId.value)
+      await personStore.remove(personId.value)
       showSuccess('已删除')
       setTimeout(() => uni.switchTab({ url: '/pages/index/index' }), 800)
     }

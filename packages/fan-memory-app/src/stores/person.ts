@@ -96,8 +96,13 @@ export const usePersonStore = defineStore('person', () => {
     }
   }
 
-  function remove(id: string) {
-    storageService.deletePerson(id)
+  async function remove(id: string) {
+    const result = await api.deletePerson(id)
+
+    if (!result.ok) {
+      storageService.deletePerson(id)
+    }
+
     people.value = people.value.filter(p => p.id !== id)
   }
 
