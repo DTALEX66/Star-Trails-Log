@@ -49,14 +49,14 @@ export const usePersonStore = defineStore('person', () => {
     return people.value.find(p => p.id === id)
   }
 
-  function add(name: string, options?: {
+  async function add(name: string, options?: {
     type?: 'star' | 'group'
     aliases?: string[]
     teams?: string[]
     keywords?: string[]
     notes?: string
   }) {
-    const person: Person = {
+    const fallbackPerson: Person = {
       id: generateId(ID_PREFIX.person),
       name,
       type: options?.type ?? 'star',
@@ -67,7 +67,23 @@ export const usePersonStore = defineStore('person', () => {
       created_at: new Date().toISOString().split('T')[0],
       updated_at: new Date().toISOString().split('T')[0],
     }
-    storageService.addPerson(person)
+
+    const result = await api.createPerson({
+      uid: fallbackPerson.id,
+      name: fallbackPerson.name,
+      person_type: fallbackPerson.type,
+      aliases: fallbackPerson.aliases,
+      keywords: fallbackPerson.keywords,
+    })
+
+    const person = result.ok && result.data
+      ? mapBackendPerson(result.data)
+      : fallbackPerson
+
+    if (!result.ok) {
+      storageService.addPerson(person)
+    }
+
     people.value.push(person)
     return person
   }
