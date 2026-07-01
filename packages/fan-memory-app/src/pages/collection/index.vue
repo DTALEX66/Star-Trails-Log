@@ -22,6 +22,10 @@
     </view>
 
     <!-- 列表 -->
+    <view v-if="syncing" class="sync-banner">
+      <text>正在同步后端收藏...</text>
+    </view>
+
     <view v-if="filteredContents.length === 0" class="empty-state">
       <text class="empty-icon">📭</text>
       <text class="empty-text">还没有收藏内容</text>
@@ -70,16 +74,31 @@ import { ref, computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useContentStore } from '@/stores/content'
 import { usePersonStore } from '@/stores/person'
+import { api } from '@/utils/api'
 import { getPlatformLabel } from '@/shared/utils/platform'
 
 const contentStore = useContentStore()
 const personStore = usePersonStore()
 const currentFilter = ref('all')
+const syncing = ref(false)
 
-onShow(() => {
+onShow(async () => {
   contentStore.load()
-  personStore.load()
+  await personStore.load()
+  await syncSavedDiscoveries()
 })
+
+async function syncSavedDiscoveries() {
+  syncing.value = true
+  try {
+    const result = await api.listDiscoveries({ status: 'SAVED', limit: 100 })
+    if (result.ok && Array.isArray(result.data)) {
+      contentStore.importSavedDiscoveries(result.data)
+    }
+  } finally {
+    syncing.value = false
+  }
+}
 
 const filteredContents = computed(() => {
   let items = contentStore.contents
@@ -151,6 +170,15 @@ function goDetail(id: string) {
 .filter-item.active {
   color: #FFF;
   background: #007AFF;
+}
+
+.sync-banner {
+  margin: 16rpx;
+  padding: 14rpx 20rpx;
+  color: #667eea;
+  background: #EEF3FF;
+  border-radius: 12rpx;
+  font-size: 23rpx;
 }
 
 .empty-state {

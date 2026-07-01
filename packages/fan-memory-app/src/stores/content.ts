@@ -115,6 +115,34 @@ export const useContentStore = defineStore('content', () => {
     contents.value = contents.value.filter(c => c.id !== id)
   }
 
+  function importSavedDiscoveries(discoveries: any[]) {
+    for (const item of discoveries) {
+      if (item.status !== 'SAVED' || !item.url || storageService.isDuplicateUrl(item.url)) continue
+
+      const content: Content = {
+        id: generateId(ID_PREFIX.content),
+        title: item.title || item.url,
+        url: item.url,
+        platform: item.platform || 'other',
+        content_type: item.content_type || 'post',
+        people: item.person_uid ? [item.person_uid] : [],
+        teams: [],
+        tags: [item.platform || 'other', '后端发现'],
+        status: 'SAVED',
+        watched: false,
+        source: 'discovery',
+        note: item.description,
+        published_at: item.published_at,
+        created_at: new Date().toISOString().split('T')[0],
+        updated_at: new Date().toISOString().split('T')[0],
+      }
+
+      storageService.addContent(content)
+      contents.value.push(content)
+      content.tags.forEach(t => storageService.addTag(t))
+    }
+  }
+
   function search(query: string): Content[] {
     const q = query.toLowerCase()
     return contents.value.filter(c =>
@@ -155,6 +183,7 @@ export const useContentStore = defineStore('content', () => {
     updateStatus,
     updateContent,
     remove,
+    importSavedDiscoveries,
     search,
     getTimeline,
   }
