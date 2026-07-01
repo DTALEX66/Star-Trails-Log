@@ -6,19 +6,23 @@
         <text
           class="filter-item"
           :class="{ active: !selectedPersonId }"
-          @click="selectedPersonId = ''"
+          @click="selectPerson('')"
         >全部</text>
         <text
           v-for="p in personStore.people"
           :key="p.id"
           class="filter-item"
           :class="{ active: selectedPersonId === p.id }"
-          @click="selectedPersonId = p.id"
+          @click="selectPerson(p.id)"
         >{{ p.name }}</text>
       </scroll-view>
     </view>
 
     <!-- 时间线 -->
+    <view v-if="syncing" class="sync-banner">
+      <text>正在同步后端发现流...</text>
+    </view>
+
     <view v-if="timeline.length === 0" class="empty-state">
       <text class="empty-text">暂无时间线记录</text>
     </view>
@@ -40,6 +44,7 @@
               <view class="tl-header">
                 <text class="tl-platform">{{ getPlatformLabel(item.platform) }}</text>
                 <text class="tl-type">{{ item.content_type }}</text>
+                <text v-if="item.source === 'discovery'" class="tl-source">发现</text>
               </view>
               <text class="tl-title">{{ item.title }}</text>
               <view class="tl-footer">
@@ -50,7 +55,7 @@
                   class="tl-watched"
                   :class="{ seen: item.watched }"
                 >
-                  {{ item.watched ? '已看' : '未看' }}
+                  {{ item.source === 'discovery' ? statusLabel(item.status) : item.watched ? '已看' : '未看' }}
                 </text>
               </view>
             </view>
@@ -66,23 +71,57 @@ import { ref, computed } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { useContentStore } from '@/stores/content'
 import { usePersonStore } from '@/stores/person'
+import { api } from '@/utils/api'
+import { groupDiscoveryTimeline } from '@/shared/utils/discoveryTimeline'
 import { getPlatformLabel } from '@/shared/utils/platform'
 
 const contentStore = useContentStore()
 const personStore = usePersonStore()
 const selectedPersonId = ref('')
+const discoveryItems = ref<any[]>([])
+const syncing = ref(false)
 
-onShow(() => {
+onShow(async () => {
   contentStore.load()
-  personStore.load()
+  await personStore.load()
+  await loadDiscoveryTimeline()
 })
 
 const timeline = computed(() => {
-  return contentStore.getTimeline(selectedPersonId.value || undefined)
+  const localTimeline = contentStore.getTimeline(selectedPersonId.value || undefined)
+  const remoteTimeline = groupDiscoveryTimeline(discoveryItems.value)
+  const merged: Record<string, any[]> = {}
+  ;[...localTimeline, ...remoteTimeline].forEach(day => {
+    if (!merged[day.date]) merged[day.date] = []
+    merged[day.date].push(...day.items)
+  })
+  return Object.keys(merged)
+    .sort((a, b) => b.localeCompare(a))
+    .map(date => ({ date, items: merged[date] }))
 })
+
+async function loadDiscoveryTimeline() {
+  syncing.value = true
+  try {
+    const result = await api.listDiscoveries({ person_uid: selectedPersonId.value || undefined, limit: 100 })
+    discoveryItems.value = result.ok && Array.isArray(result.data) ? result.data : []
+  } finally {
+    syncing.value = false
+  }
+}
+
+async function selectPerson(id: string) {
+  selectedPersonId.value = id
+  await loadDiscoveryTimeline()
+}
 
 function getPersonName(id: string): string {
   return personStore.getById(id)?.name || '未知'
+}
+
+function statusLabel(status: string) {
+  const map: Record<string, string> = { NEW: '新发现', SAVED: '已收藏', IGNORED: '已忽略', BLOCKED: '已屏蔽' }
+  return map[status] || status
 }
 </script>
 
@@ -116,6 +155,15 @@ function getPersonName(id: string): string {
 .filter-item.active {
   color: #FFF;
   background: #007AFF;
+}
+
+.sync-banner {
+  margin: 16rpx;
+  padding: 14rpx 20rpx;
+  color: #667eea;
+  background: #EEF3FF;
+  border-radius: 12rpx;
+  font-size: 23rpx;
 }
 
 .empty-state {
@@ -213,6 +261,14 @@ function getPersonName(id: string): string {
   font-size: 20rpx;
   color: #666;
   background: #F5F5F5;
+  padding: 2rpx 10rpx;
+  border-radius: 4rpx;
+}
+
+.tl-source {
+  font-size: 20rpx;
+  color: #764ba2;
+  background: #F4ECFF;
   padding: 2rpx 10rpx;
   border-radius: 4rpx;
 }
