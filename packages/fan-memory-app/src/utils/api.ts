@@ -93,6 +93,15 @@ class ApiClient {
     return this.request<any>('POST', '/people/', data)
   }
 
+  async updatePerson(uid: string, data: {
+    name?: string
+    person_type?: string
+    aliases?: string[]
+    keywords?: string[]
+  }) {
+    return this.request<any>('PUT', `/people/${uid}`, data)
+  }
+
   async deletePerson(uid: string) {
     return this.request<any>('DELETE', `/people/${uid}`)
   }

@@ -42,11 +42,11 @@ const editType = ref<'star'|'group'>('star')
 const editAliases = ref('')
 const editNotes = ref('')
 
-onShow(() => {
-  personStore.load()
+onShow(async () => {
   const pages = getCurrentPages()
   const page = pages[pages.length - 1] as any
   personId.value = page.$page?.options?.id || page.options?.id || ''
+  await personStore.load()
   loadPerson()
 })
 
@@ -62,9 +62,9 @@ function loadPerson() {
   }
 }
 
-function save() {
+async function save() {
   if (!editName.value.trim()) { showToast('请输入姓名', 'error'); return }
-  personStore.update(personId.value, {
+  await personStore.update(personId.value, {
     name: editName.value.trim(),
     type: editType.value,
     aliases: editAliases.value.split(/[,，]/).map(s => s.trim()).filter(Boolean),

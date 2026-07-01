@@ -88,9 +88,25 @@ export const usePersonStore = defineStore('person', () => {
     return person
   }
 
-  function update(id: string, updates: Partial<Person>) {
-    storageService.updatePerson(id, updates)
+  async function update(id: string, updates: Partial<Person>) {
+    const apiPayload = {
+      ...(updates.name !== undefined ? { name: updates.name } : {}),
+      ...(updates.type !== undefined ? { person_type: updates.type } : {}),
+      ...(updates.aliases !== undefined ? { aliases: updates.aliases } : {}),
+      ...(updates.keywords !== undefined ? { keywords: updates.keywords } : {}),
+    }
+
+    const result = await api.updatePerson(id, apiPayload)
     const index = people.value.findIndex(p => p.id === id)
+
+    if (result.ok && result.data) {
+      if (index !== -1) {
+        people.value[index] = mapBackendPerson(result.data)
+      }
+      return
+    }
+
+    storageService.updatePerson(id, updates)
     if (index !== -1) {
       people.value[index] = { ...people.value[index], ...updates }
     }

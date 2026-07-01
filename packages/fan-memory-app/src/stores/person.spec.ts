@@ -5,16 +5,20 @@ import { usePersonStore } from './person'
 const {
   listPeopleMock,
   createPersonMock,
+  updatePersonMock,
   deletePersonMock,
   getPeopleMock,
   addPersonMock,
+  storageUpdatePersonMock,
   storageDeletePersonMock,
 } = vi.hoisted(() => ({
   listPeopleMock: vi.fn(),
   createPersonMock: vi.fn(),
+  updatePersonMock: vi.fn(),
   deletePersonMock: vi.fn(),
   getPeopleMock: vi.fn(),
   addPersonMock: vi.fn(),
+  storageUpdatePersonMock: vi.fn(),
   storageDeletePersonMock: vi.fn(),
 }))
 
@@ -22,6 +26,7 @@ vi.mock('@/utils/api', () => ({
   api: {
     listPeople: listPeopleMock,
     createPerson: createPersonMock,
+    updatePerson: updatePersonMock,
     deletePerson: deletePersonMock,
   },
 }))
@@ -30,35 +35,36 @@ vi.mock('@/utils/storage', () => ({
   storageService: {
     getPeople: getPeopleMock,
     addPerson: addPersonMock,
-    updatePerson: vi.fn(),
+    updatePerson: storageUpdatePersonMock,
     deletePerson: storageDeletePersonMock,
   },
 }))
+
+const backendWang = {
+  uid: 'p1',
+  name: '王一珩',
+  person_type: 'star',
+  aliases: ['一珩'],
+  keywords: ['王一珩'],
+  created_at: '2026-06-30T16:06:30.660935',
+  updated_at: '2026-06-30T16:06:30.660935',
+}
 
 describe('person store', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     listPeopleMock.mockReset()
     createPersonMock.mockReset()
+    updatePersonMock.mockReset()
     deletePersonMock.mockReset()
     getPeopleMock.mockReset()
     addPersonMock.mockReset()
+    storageUpdatePersonMock.mockReset()
     storageDeletePersonMock.mockReset()
   })
 
   it('loads people from discovery API and maps backend fields to frontend model', async () => {
-    listPeopleMock.mockResolvedValue({
-      ok: true,
-      data: [{
-        uid: 'p1',
-        name: '王一珩',
-        person_type: 'star',
-        aliases: ['一珩'],
-        keywords: ['王一珩'],
-        created_at: '2026-06-30T16:06:30.660935',
-        updated_at: '2026-06-30T16:06:30.660935',
-      }],
-    })
+    listPeopleMock.mockResolvedValue({ ok: true, data: [backendWang] })
     getPeopleMock.mockReturnValue([])
 
     const store = usePersonStore()
@@ -145,19 +151,57 @@ describe('person store', () => {
     expect(store.people).toEqual([person])
   })
 
-  it('deletes people through discovery API and removes them from state', async () => {
-    listPeopleMock.mockResolvedValue({
+  it('updates people through discovery API and maps the response into state', async () => {
+    listPeopleMock.mockResolvedValue({ ok: true, data: [backendWang] })
+    updatePersonMock.mockResolvedValue({
       ok: true,
-      data: [{
-        uid: 'p1',
-        name: '王一珩',
-        person_type: 'star',
-        aliases: [],
-        keywords: ['王一珩'],
-        created_at: '2026-06-30T16:06:30.660935',
-        updated_at: '2026-06-30T16:06:30.660935',
-      }],
+      data: {
+        ...backendWang,
+        name: '王一珩 edited',
+        aliases: ['小王'],
+        updated_at: '2026-07-01T10:00:00',
+      },
     })
+
+    const store = usePersonStore()
+    await store.load()
+    await store.update('p1', { name: '王一珩 edited', aliases: ['小王'] })
+
+    expect(updatePersonMock).toHaveBeenCalledWith('p1', {
+      name: '王一珩 edited',
+      aliases: ['小王'],
+    })
+    expect(storageUpdatePersonMock).not.toHaveBeenCalled()
+    expect(store.people[0].name).toBe('王一珩 edited')
+    expect(store.people[0].aliases).toEqual(['小王'])
+  })
+
+  it('falls back to local update when discovery API update fails', async () => {
+    listPeopleMock.mockResolvedValue({ ok: false })
+    getPeopleMock.mockReturnValue([
+      {
+        id: 'local_1',
+        name: '本地明星',
+        type: 'star',
+        aliases: [],
+        teams: [],
+        keywords: ['本地明星'],
+        created_at: '2026-07-01',
+        updated_at: '2026-07-01',
+      },
+    ])
+    updatePersonMock.mockResolvedValue({ ok: false, error: 'Network error' })
+
+    const store = usePersonStore()
+    await store.load()
+    await store.update('local_1', { name: '本地明星 edited' })
+
+    expect(storageUpdatePersonMock).toHaveBeenCalledWith('local_1', { name: '本地明星 edited' })
+    expect(store.people[0].name).toBe('本地明星 edited')
+  })
+
+  it('deletes people through discovery API and removes them from state', async () => {
+    listPeopleMock.mockResolvedValue({ ok: true, data: [backendWang] })
     deletePersonMock.mockResolvedValue({ ok: true })
 
     const store = usePersonStore()
