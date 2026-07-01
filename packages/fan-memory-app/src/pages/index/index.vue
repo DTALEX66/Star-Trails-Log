@@ -63,6 +63,13 @@
       <text class="empty-hint">稍等一下，正在同步人物与统计信息</text>
     </view>
 
+    <view v-else-if="errorMessage" class="empty-state error-state">
+      <text class="empty-icon">⚠️</text>
+      <text class="empty-text">加载失败</text>
+      <text class="empty-hint">{{ errorMessage }}</text>
+      <text class="retry-btn" @click="loadHome">重试同步</text>
+    </view>
+
     <view v-else-if="personStore.people.length === 0" class="empty-state">
       <text class="empty-icon">⭐</text>
       <text class="empty-text">还没有关注任何明星</text>
@@ -104,14 +111,24 @@ const personStore = usePersonStore()
 const contentStore = useContentStore()
 const discoveryStore = useDiscoveryStore()
 const loading = ref(true)
+const errorMessage = ref('')
 
 onShow(async () => {
-  loading.value = true
-  await personStore.load()
-  contentStore.load()
-  await discoveryStore.loadStats()
-  loading.value = false
+  await loadHome()
 })
+
+async function loadHome() {
+  loading.value = true
+  errorMessage.value = ''
+  try {
+    await personStore.load()
+    contentStore.load()
+    await discoveryStore.loadStats()
+  } catch (e: any) {
+    errorMessage.value = e?.message || '无法同步后端资料库，请检查 discovery-service 是否启动。'
+  }
+  loading.value = false
+}
 
 function navigateTo(path: string) {
   uni.navigateTo({ url: path })
@@ -151,6 +168,8 @@ function navigateTo(path: string) {
 .empty-icon { font-size: 64rpx; display: block; }
 .empty-text { font-size: 28rpx; color: #999; margin-top: 16rpx; display: block; }
 .empty-hint { font-size: 24rpx; color: #ccc; margin-top: 8rpx; display: block; }
+.error-state .empty-text { color: #d97706; }
+.retry-btn { display: inline-block; margin-top: 22rpx; font-size: 24rpx; color: #007AFF; background: #E8F0FE; border-radius: 999rpx; padding: 8rpx 22rpx; }
 .person-list { padding: 0 16rpx; }
 .person-card { background: #FFFFFF; border-radius: 16rpx; padding: 24rpx; margin-bottom: 14rpx; display: flex; align-items: center; box-shadow: 0 4rpx 14rpx rgba(0, 0, 0, 0.05); }
 .person-avatar { width: 76rpx; height: 76rpx; border-radius: 50%; background: linear-gradient(135deg, #667eea, #764ba2); display: flex; align-items: center; justify-content: center; margin-right: 20rpx; flex-shrink: 0; }
