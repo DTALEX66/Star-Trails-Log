@@ -1,18 +1,23 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+.gitattributes text eol=lf
 
 # Python
-*.py text diff=python
+*.py text eol=lf diff=python
 
 # TypeScript/Vue
-*.ts text
-*.vue text
+*.ts text eol=lf
+*.vue text eol=lf
 
 # JSON
-*.json text
+*.json text eol=lf
 
 # Markdown
-*.md text
+*.md text eol=lf
+
+# YAML
+*.yml text eol=lf
+*.yaml text eol=lf
 
 # Shell
 *.sh text eol=lf
