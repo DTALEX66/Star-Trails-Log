@@ -1,15 +1,47 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { storageService } from '@/utils/storage'
-import type { Person } from '@/shared/models/index'
+import { api } from '@/utils/api'
+import type { Person, PersonType } from '@/shared/models/index'
 import { generateId, ID_PREFIX } from '@/shared/utils/id'
+
+type BackendPerson = {
+  uid?: string
+  id?: string | number
+  name: string
+  person_type?: PersonType
+  type?: PersonType
+  aliases?: string[]
+  keywords?: string[]
+  created_at?: string
+  updated_at?: string
+}
+
+function mapBackendPerson(person: BackendPerson): Person {
+  return {
+    id: String(person.uid ?? person.id),
+    name: person.name,
+    type: person.person_type ?? person.type ?? 'star',
+    aliases: person.aliases ?? [],
+    teams: [],
+    keywords: person.keywords ?? [person.name],
+    created_at: person.created_at ?? new Date().toISOString(),
+    updated_at: person.updated_at ?? new Date().toISOString(),
+  }
+}
 
 export const usePersonStore = defineStore('person', () => {
   const people = ref<Person[]>([])
 
   const totalCount = computed(() => people.value.length)
 
-  function load() {
+  async function load() {
+    const result = await api.listPeople()
+    if (result.ok && Array.isArray(result.data)) {
+      people.value = result.data.map(mapBackendPerson)
+      return
+    }
+
     people.value = storageService.getPeople()
   }
 
