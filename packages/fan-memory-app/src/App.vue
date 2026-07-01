@@ -27,9 +27,11 @@ onShow(async () => {
 <style>
 /* 全局样式 */
 page {
-  background-color: #F8F8F8;
+  background:
+    radial-gradient(circle at 16% 0%, rgba(102, 126, 234, 0.10), transparent 28%),
+    linear-gradient(180deg, #FBFCFF 0%, #F5F7FB 45%, #F8F8F8 100%);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-  color: #333;
+  color: #1F2937;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -59,18 +61,19 @@ page {
 
 /* 通用卡片样式 */
 .card {
-  background: #FFFFFF;
-  border-radius: 12rpx;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1rpx solid rgba(102, 126, 234, 0.08);
+  border-radius: 18rpx;
   padding: 24rpx;
   margin: 16rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+  box-shadow: 0 10rpx 28rpx rgba(31, 41, 55, 0.07);
 }
 
 /* 通用按钮 */
 .btn-primary {
-  background: #007AFF;
+  background: linear-gradient(135deg, #667eea, #764ba2);
   color: #FFFFFF;
-  border-radius: 10rpx;
+  border-radius: 14rpx;
   padding: 22rpx 32rpx;
   text-align: center;
   font-size: 28rpx;
@@ -88,9 +91,10 @@ page {
 }
 
 .btn-secondary {
-  background: #F0F0F0;
-  color: #333;
-  border-radius: 10rpx;
+  background: #FFFFFF;
+  color: #667eea;
+  border: 2rpx solid #DFE5FF;
+  border-radius: 14rpx;
   padding: 22rpx 32rpx;
   text-align: center;
   font-size: 28rpx;
@@ -100,8 +104,8 @@ page {
 /* 输入框 */
 .input-field {
   background: #FFFFFF;
-  border: 2rpx solid #E0E0E0;
-  border-radius: 10rpx;
+  border: 2rpx solid #E7EAF3;
+  border-radius: 14rpx;
   padding: 20rpx 24rpx;
   font-size: 28rpx;
   width: 100%;
@@ -110,7 +114,7 @@ page {
 }
 
 .input-field:focus {
-  border-color: #007AFF;
+  border-color: #667eea;
 }
 
 /* 状态标签 */
@@ -123,8 +127,8 @@ page {
 }
 
 .tag-blue {
-  background: #E8F0FE;
-  color: #007AFF;
+  background: #EEF3FF;
+  color: #667eea;
 }
 
 .tag-green {
