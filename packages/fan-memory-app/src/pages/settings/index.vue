@@ -13,6 +13,12 @@
         <text class="item-value">{{ connectionStatus }}</text>
         <text class="arrow">›</text>
       </view>
+
+      <view class="connection-card">
+        <text class="connection-title">Discovery Service</text>
+        <text class="connection-line">人物 {{ remoteStats.total_people }} · 追踪源 {{ remoteStats.total_sources }} · 新发现 {{ remoteStats.new_count }}</text>
+        <text class="connection-line muted">{{ lastChecked ? '上次检测：' + lastChecked : '尚未完成检测' }}</text>
+      </view>
     </view>
 
     <view class="settings-section">
@@ -80,13 +86,14 @@ const personStore = usePersonStore()
 const API_URL_KEY = 'fan_memory_api_url'
 const backendUrl = ref('http://localhost:8766')
 const connectionStatus = ref('未测试')
+const lastChecked = ref('')
+const remoteStats = ref({ total_people: 0, total_sources: 0, total_discoveries: 0, new_count: 0 })
 
 onShow(async () => {
   contentStore.load()
-  personStore.load()
+  await personStore.load()
   backendUrl.value = String(uni.getStorageSync(API_URL_KEY) || 'http://localhost:8766')
-  // Auto-test connection
-  testConnection()
+  await testConnection()
 })
 
 const stats = computed(() => {
@@ -95,25 +102,24 @@ const stats = computed(() => {
   return `${p} 人 · ${c} 条`
 })
 
-function saveBackendUrl() {
+function saveBackendUrl(showMessage = true) {
   const url = backendUrl.value.replace(/\/+$/, '')
   backendUrl.value = url
   try { uni.setStorageSync(API_URL_KEY, url) } catch {}
-  showToast('地址已保存')
+  if (showMessage) showToast('地址已保存')
 }
 
 async function testConnection() {
   connectionStatus.value = '检测中...'
-  try {
-    const r = await fetch(`${backendUrl.value}/api/health`)
-    const data = await r.json()
-    if (data.status === 'ok') {
-      connectionStatus.value = '✅ 已连接'
-      showSuccess('后端连接成功')
-    } else {
-      connectionStatus.value = '❌ 连接异常'
-    }
-  } catch {
+  saveBackendUrl(false)
+  const health = await api.health()
+  if (health.ok) {
+    connectionStatus.value = '✅ 已连接'
+    const stats = await api.getDiscoveryStats()
+    if (stats.ok && stats.data) remoteStats.value = stats.data
+    lastChecked.value = new Date().toLocaleTimeString()
+    showSuccess('后端连接成功')
+  } else {
     connectionStatus.value = '❌ 无法连接'
     showToast('无法连接到后端', 'error')
   }
@@ -176,6 +182,10 @@ function navTo(path: string) {
 .item-input { flex: 1; font-size: 26rpx; color: #007AFF; text-align: right; border: none; padding: 0; }
 .item-value { font-size: 24rpx; color: #999; margin-right: 8rpx; }
 .arrow { font-size: 28rpx; color: #ccc; }
+.connection-card { margin: 16rpx 24rpx 0; background: #FFF; border-radius: 16rpx; padding: 24rpx; box-shadow: 0 4rpx 14rpx rgba(0,0,0,0.05); }
+.connection-title { display: block; font-size: 26rpx; color: #333; font-weight: 700; }
+.connection-line { display: block; font-size: 23rpx; color: #666; margin-top: 8rpx; }
+.connection-line.muted { color: #aaa; }
 .settings-footer { text-align: center; padding: 48rpx 32rpx; }
 .footer-text { font-size: 22rpx; color: #ccc; display: block; margin-bottom: 4rpx; }
 </style>
