@@ -49,7 +49,10 @@
             <text class="source-platform">{{ source.platform || 'other' }}</text>
             <text class="source-main">{{ source.keyword || source.url || source.uid }}</text>
           </view>
-          <text class="source-type">{{ source.source_type }}</text>
+          <view class="source-actions">
+            <text class="source-type">{{ source.source_type }}</text>
+            <text class="source-delete" @click.stop="deleteSource(source.uid)">删除</text>
+          </view>
         </view>
       </view>
     </view>
@@ -94,6 +97,7 @@ import { usePersonStore } from '@/stores/person'
 import { useContentStore } from '@/stores/content'
 import { api } from '@/utils/api'
 import { getPlatformLabel } from '@/shared/utils/platform'
+import { showSuccess } from '@/utils/toast'
 
 const personStore = usePersonStore()
 const contentStore = useContentStore()
@@ -142,6 +146,14 @@ function goEdit() {
 function goAddSource() {
   uni.navigateTo({ url: '/pages/reminder/index?person=' + personId.value })
 }
+
+async function deleteSource(uid: string) {
+  const result = await api.deleteSource(uid)
+  if (result.ok) {
+    sources.value = sources.value.filter(s => s.uid !== uid)
+    showSuccess('追踪源已删除')
+  }
+}
 </script>
 
 <style scoped>
@@ -170,7 +182,9 @@ function goAddSource() {
 .source-card { background: #FFF; border-radius: 14rpx; padding: 20rpx; display: flex; justify-content: space-between; gap: 20rpx; align-items: center; box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04); }
 .source-platform { font-size: 20rpx; color: #667eea; background: #EEF3FF; padding: 2rpx 10rpx; border-radius: 999rpx; }
 .source-main { display: block; font-size: 25rpx; color: #333; margin-top: 8rpx; }
-.source-type { flex-shrink: 0; font-size: 21rpx; color: #999; }
+.source-actions { flex-shrink: 0; display: flex; align-items: center; gap: 12rpx; }
+.source-type { font-size: 21rpx; color: #999; }
+.source-delete { font-size: 21rpx; color: #FF5252; background: #FFEBEE; border-radius: 999rpx; padding: 4rpx 12rpx; }
 .content-list { display: flex; flex-direction: column; gap: 12rpx; }
 .content-card { background: #FFFFFF; border-radius: 12rpx; padding: 20rpx; box-shadow: 0 2rpx 6rpx rgba(0,0,0,0.04); }
 .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8rpx; }

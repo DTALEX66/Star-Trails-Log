@@ -123,6 +123,10 @@ class ApiClient {
     return this.request<any>('POST', `/people/${personUid}/sources`, data)
   }
 
+  async deleteSource(sourceUid: string) {
+    return this.request<any>('DELETE', `/people/sources/${sourceUid}`)
+  }
+
   // ============ Discovery ============
 
   async listDiscoveries(params?: {
