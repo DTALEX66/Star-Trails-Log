@@ -29,6 +29,26 @@
       </button>
     </view>
 
+    <!-- 当前人物追踪源添加 -->
+    <view v-if="discoveryStore.connected && personUid" class="source-form section">
+      <view class="section-header">
+        <text class="section-title">添加追踪源</text>
+      </view>
+      <view class="form-card">
+        <view class="form-row">
+          <text class="form-label">平台</text>
+          <input class="input-field" v-model="sourcePlatform" placeholder="weibo / bilibili / other" />
+        </view>
+        <view class="form-row">
+          <text class="form-label">关键词或主页 URL</text>
+          <input class="input-field" v-model="sourceValue" placeholder="输入关键词或官方账号链接" />
+        </view>
+        <button class="btn-primary" :disabled="sourceSaving" @click="createSource">
+          {{ sourceSaving ? '添加中...' : '添加追踪源' }}
+        </button>
+      </view>
+    </view>
+
     <!-- 新发现列表 -->
     <view v-if="discoveryStore.connected" class="section">
       <view class="section-header">
@@ -86,14 +106,22 @@ import { onShow } from '@dcloudio/uni-app'
 import { useDiscoveryStore } from '@/stores/discovery'
 import { useContentStore } from '@/stores/content'
 import { getPlatformLabel } from '@/shared/utils/platform'
+import { generateId } from '@/shared/utils/id'
 import { showSuccess } from '@/utils/toast'
 
 const discoveryStore = useDiscoveryStore()
 const contentStore = useContentStore()
 const loading = ref(false)
+const personUid = ref('')
+const sourcePlatform = ref('weibo')
+const sourceValue = ref('')
+const sourceSaving = ref(false)
 
 onShow(async () => {
   loading.value = true
+  const pages = getCurrentPages()
+  const page = pages[pages.length - 1] as any
+  personUid.value = page.$page?.options?.person || page.options?.person || ''
   if (await discoveryStore.checkConnection()) {
     await Promise.all([
       discoveryStore.loadStats(),
@@ -140,6 +168,26 @@ async function ignore(item: any) {
   await discoveryStore.takeAction(item.id, 'ignore')
   showSuccess('已忽略')
 }
+
+async function createSource() {
+  const value = sourceValue.value.trim()
+  if (!value) return
+  sourceSaving.value = true
+  const isUrl = /^https?:\/\//.test(value)
+  const ok = await discoveryStore.syncSource(personUid.value, {
+    uid: generateId('source'),
+    source_type: isUrl ? 'official_account' : 'keyword',
+    platform: sourcePlatform.value.trim() || 'other',
+    keyword: isUrl ? '' : value,
+    url: isUrl ? value : '',
+  })
+  sourceSaving.value = false
+  if (ok) {
+    sourceValue.value = ''
+    await discoveryStore.loadStats()
+    showSuccess('追踪源已添加')
+  }
+}
 </script>
 
 <style scoped>
@@ -156,6 +204,12 @@ async function ignore(item: any) {
 
 .actions { padding: 0 32rpx 16rpx; }
 .actions .btn-primary { width: 100%; }
+
+.form-card { background: #FFF; border-radius: 14rpx; padding: 22rpx; box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04); }
+.form-row { margin-bottom: 18rpx; }
+.form-label { font-size: 23rpx; color: #666; display: block; margin-bottom: 8rpx; font-weight: 600; }
+.input-field { background: #FAFAFA; border: 2rpx solid #E8E8E8; border-radius: 10rpx; padding: 16rpx 18rpx; font-size: 25rpx; width: 100%; box-sizing: border-box; }
+.form-card .btn-primary { width: 100%; }
 
 .section { padding: 0 16rpx; margin-bottom: 16rpx; }
 .section-header { display: flex; align-items: center; gap: 12rpx; padding: 16rpx; }
