@@ -33,23 +33,28 @@ class ApiClient {
   ): Promise<ApiResult<T>> {
     try {
       const url = `${this.baseUrl}${path}`
-      const options: any = {
-        method,
-        headers: { 'Content-Type': 'application/json' },
+
+      // 使用 uni.request 替代 fetch，兼容 H5 + 小程序
+      const res = await new Promise<any>((resolve, reject) => {
+        uni.request({
+          url,
+          method: method as any,
+          header: { 'Content-Type': 'application/json' },
+          data: body,
+          timeout: 15000,
+          success: (r) => resolve(r),
+          fail: (e) => reject(e),
+        })
+      })
+
+      if (res.statusCode >= 400) {
+        return { ok: false, error: `HTTP ${res.statusCode}` }
       }
-      if (body) options.body = JSON.stringify(body)
 
-      const res = await fetch(url, options)
-      const text = await res.text()
-
-      if (!res.ok) {
-        return { ok: false, error: `HTTP ${res.status}: ${text.slice(0, 100)}` }
-      }
-
-      const data = text ? JSON.parse(text) : null
+      const data = res.data ? (typeof res.data === 'string' ? JSON.parse(res.data) : res.data) : null
       return { ok: true, data }
     } catch (e: any) {
-      return { ok: false, error: e.message || 'Network error' }
+      return { ok: false, error: e.errMsg || e.message || 'Network error' }
     }
   }
 
