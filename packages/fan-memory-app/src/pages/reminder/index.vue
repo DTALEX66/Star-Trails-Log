@@ -76,14 +76,14 @@
             <text class="platform-tag">{{ getPlatformLabel(item.platform) }}</text>
             <text class="type-tag">{{ item.content_type }}</text>
           </view>
-          <text class="card-title">{{ item.title }}</text>
+          <text class="card-title" @click="copyUrl(item)">{{ item.title }}</text>
           <text v-if="item.description" class="card-desc">{{ item.description.slice(0, 80) }}</text>
           <view class="card-footer">
             <text class="card-date">{{ item.published_at || item.discovered_at?.slice(0, 10) }}</text>
             <view class="card-actions">
-              <text class="action-save" @click="save(item)">收藏</text>
-              <text class="action-ignore" @click="ignore(item)">忽略</text>
-              <text class="action-block" @click="block(item)">屏蔽</text>
+              <text class="action-save" :class="{ disabled: processingId === item.id }" @click="save(item)">收藏</text>
+              <text class="action-ignore" :class="{ disabled: processingId === item.id }" @click="ignore(item)">忽略</text>
+              <text class="action-block" :class="{ disabled: processingId === item.id }" @click="block(item)">屏蔽</text>
             </view>
           </view>
         </view>
@@ -122,6 +122,7 @@ const personUid = ref('')
 const sourcePlatform = ref('weibo')
 const sourceValue = ref('')
 const sourceSaving = ref(false)
+const processingId = ref<number | null>(null)
 
 onShow(async () => {
   loading.value = true
@@ -158,30 +159,47 @@ function statusLabel(s: string) {
 }
 
 async function save(item: any) {
-  // 先收藏到本地
-  const result = contentStore.add({
-    url: item.url,
-    title: item.title,
-    people: [], // 暂不关联人物
-    tags: [item.platform],
-  })
-
-  // 再通知后端
-  await discoveryStore.takeAction(item.id, 'save')
-
-  if (result.content) {
-    showSuccess('已收藏')
+  if (processingId.value) return
+  processingId.value = item.id
+  try {
+    const result = contentStore.add({
+      url: item.url,
+      title: item.title,
+      people: [],
+      tags: [item.platform],
+    })
+    await discoveryStore.takeAction(item.id, 'save')
+    if (result.content) showSuccess('已收藏')
+  } finally {
+    processingId.value = null
   }
 }
 
 async function ignore(item: any) {
-  await discoveryStore.takeAction(item.id, 'ignore')
-  showSuccess('已忽略')
+  if (processingId.value) return
+  processingId.value = item.id
+  try {
+    await discoveryStore.takeAction(item.id, 'ignore')
+    showSuccess('已忽略')
+  } finally {
+    processingId.value = null
+  }
 }
 
 async function block(item: any) {
-  await discoveryStore.takeAction(item.id, 'block')
-  showSuccess('已屏蔽')
+  if (processingId.value) return
+  processingId.value = item.id
+  try {
+    await discoveryStore.takeAction(item.id, 'block')
+    showSuccess('已屏蔽')
+  } finally {
+    processingId.value = null
+  }
+}
+
+function copyUrl(item: any) {
+  if (!item.url) return
+  uni.setClipboardData({ data: item.url })
 }
 
 async function createSource() {
@@ -253,6 +271,7 @@ async function createSource() {
 .action-save { font-size: 22rpx; color: #007AFF; padding: 4rpx 16rpx; background: #E8F0FE; border-radius: 4rpx; }
 .action-ignore { font-size: 22rpx; color: #999; padding: 4rpx 16rpx; background: #F5F5F5; border-radius: 4rpx; }
 .action-block { font-size: 22rpx; color: #FF5252; padding: 4rpx 16rpx; background: #FFEBEE; border-radius: 4rpx; }
+.disabled { opacity: 0.45; pointer-events: none; }
 
 .history-list { background: #FFF; border-radius: 12rpx; overflow: hidden; }
 .history-item { display: flex; align-items: center; padding: 16rpx 20rpx; border-bottom: 2rpx solid #F5F5F5; gap: 12rpx; }
